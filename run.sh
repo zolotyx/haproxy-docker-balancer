@@ -1,0 +1,1 @@
+docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:80 --name my-haproxy -i zolotyx/docker-gen-haproxy
