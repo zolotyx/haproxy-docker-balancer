@@ -1,1 +1,1 @@
-docker build -t zolotyx/docker-gen-haproxy .
+docker build -t docker-gen-haproxy-branch .

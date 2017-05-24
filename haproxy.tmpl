@@ -1,5 +1,4 @@
 global
-    daemon
 
 defaults
     mode    http
@@ -9,24 +8,22 @@ defaults
     timeout client 5000
     timeout server 15000
     balance leastconn
-    option forwardfor header X-Real-IP
 
-{{ $services := groupByLabel $ "hostname" }}
+{{ $services := groupByLabel $ "branch" }}
 frontend http-in
     bind *:80
 
-    {{ range $host, $containers := $services }}
-    {{ $name := replace $host "." "_" -1}}
-    acl host_{{ $name }} hdr_dom(host) -i {{ $host }}
-    use_backend {{ $name }} if host_{{ $name }}
+    {{ range $branch, $containers := $services }}
+    acl branch_{{ $branch }} path_beg /{{ $branch }}
+    use_backend {{ $branch }} if branch_{{ $branch }}
     {{ end }}
 
-{{ range $host, $containers := $services }}
-{{ $name := replace $host "." "_" -1}}
-backend {{ $name }}
-    option http-server-close
+{{ range $branch, $containers := $services }}
+backend {{ $branch }}
     {{ range $index, $container := $containers }}
     {{ with $address := index $container.Networks 0 }}
+    reqrep ^([^\ :]*)\ /{{$branch}}/(.*)     \1\ /\2
+    rspirep ^(Set-Cookie:.*)\ Path=(.*) \1\ Path=/{{$branch}}
     server server{{ $index }} {{ $address.IP }}:80 check inter 10000 maxconn 50
     {{ end }}
     {{ end }}
